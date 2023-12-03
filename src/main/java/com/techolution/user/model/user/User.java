@@ -3,9 +3,8 @@ package com.techolution.user.model.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.techolution.user.model.audit.DateAudit;
 import com.techolution.user.model.role.Role;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
@@ -13,15 +12,16 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @Entity
-@Data
+@ToString
+@Getter
+@Setter
 @NoArgsConstructor
-@Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = { "username" }),
-        @UniqueConstraint(columnNames = { "email" }) })
+@AllArgsConstructor
+@Table(name = "user", uniqueConstraints = { @UniqueConstraint(columnNames = { "username", "email" })})
 public class User extends DateAudit {
     private static final long serialVersionUID = 1L;
 
@@ -69,14 +69,6 @@ public class User extends DateAudit {
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles;
 
-    public User(String firstName, String lastName, String username, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
-
     public List<Role> getRoles() {
 
         return roles == null ? null : new ArrayList<>(roles);
@@ -87,7 +79,7 @@ public class User extends DateAudit {
         if (roles == null) {
             this.roles = null;
         } else {
-            this.roles = Collections.unmodifiableList(roles);
+            this.roles = new ArrayList<>(roles);
         }
     }
 }

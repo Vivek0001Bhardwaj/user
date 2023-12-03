@@ -1,7 +1,10 @@
 package com.techolution.user.model.audit;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,12 +16,12 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
-@Data
+@SuperBuilder
+@ToString
+@Getter
+@Setter
+@RequiredArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(
-		value = { "createdAt", "updatedAt" },
-		allowGetters = true
-)
 public abstract class DateAudit implements Serializable {
 	private static final long serialVersionUID = 1L;
 

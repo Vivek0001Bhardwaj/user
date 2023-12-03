@@ -1,4 +1,7 @@
 spring:
+  config:
+    active:
+      on-profile: unittest
   h2:
     console:
       enabled: true

@@ -78,7 +78,13 @@ public class AuthController {
 
 		String password = passwordEncoder.encode(signUpRequest.getPassword());
 
-		User user = new User(firstName, lastName, username, email, password);
+		User user = User.builder()
+				.firstName(firstName)
+				.lastName(lastName)
+				.username(username)
+				.email(email)
+				.password(password)
+				.build();
 
 		List<Role> roles = new ArrayList<>();
 

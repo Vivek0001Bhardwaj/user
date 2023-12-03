@@ -2,17 +2,18 @@ package com.techolution.user.model.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.techolution.user.model.audit.UserDateAudit;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
-@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @Entity
-@Data
+@ToString
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "address")
 public class Address extends UserDateAudit {
     private static final long serialVersionUID = 1L;
@@ -40,64 +41,8 @@ public class Address extends UserDateAudit {
     @OneToOne(mappedBy = "address")
     private User user;
 
-    public Address(String street, String suite, String city, String zipcode, Geo geo) {
-        this.street = street;
-        this.suite = suite;
-        this.city = city;
-        this.zipcode = zipcode;
-        this.geo = geo;
-    }
-
     @JsonIgnore
     public Long getId() {
         return id;
-    }
-
-    @JsonIgnore
-    @Override
-    public Long getCreatedBy() {
-        return super.getCreatedBy();
-    }
-
-    @JsonIgnore
-    @Override
-    public void setCreatedBy(Long createdBy) {
-        super.setCreatedBy(createdBy);
-    }
-
-    @JsonIgnore
-    @Override
-    public Long getUpdatedBy() {
-        return super.getUpdatedBy();
-    }
-
-    @JsonIgnore
-    @Override
-    public void setUpdatedBy(Long updatedBy) {
-        super.setUpdatedBy(updatedBy);
-    }
-
-    @JsonIgnore
-    @Override
-    public LocalDateTime getCreatedAt() {
-        return super.getCreatedAt();
-    }
-
-    @JsonIgnore
-    @Override
-    public void setCreatedAt(LocalDateTime createdAt) {
-        super.setCreatedAt(createdAt);
-    }
-
-    @JsonIgnore
-    @Override
-    public LocalDateTime getUpdatedAt() {
-        return super.getUpdatedAt();
-    }
-
-    @JsonIgnore
-    @Override
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        super.setUpdatedAt(updatedAt);
     }
 }
