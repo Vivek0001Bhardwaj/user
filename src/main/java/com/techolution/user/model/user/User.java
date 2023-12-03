@@ -1,6 +1,5 @@
 package com.techolution.user.model.user;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.techolution.user.model.audit.DateAudit;
 import com.techolution.user.model.role.Role;
 import lombok.*;
@@ -46,7 +45,6 @@ public class User extends DateAudit {
     private String username;
 
     @NotBlank
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Size(max = 100)
     @Column(name = "password")
     private String password;
