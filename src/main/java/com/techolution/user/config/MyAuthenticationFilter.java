@@ -32,11 +32,11 @@ public class MyAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String username = request.getParameter(AppConstants.USERNAME);
+            String authVal = request.getParameter(AppConstants.AUTH_VAL);
 
-            if (!StringUtils.isBlank(username)) {
+            if (!StringUtils.isBlank(authVal)) {
 
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(authVal);
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null,
                         userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

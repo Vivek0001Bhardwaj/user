@@ -51,7 +51,7 @@ public class UserIntegrationTest {
     @Order(2)
     public void authenticateUser() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/signin")
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
                         .content(new ObjectMapper().writeValueAsString(constructLoginRequest()))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -71,7 +71,7 @@ public class UserIntegrationTest {
     @Order(3)
     public void getCurrentUser() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.get("/api/user/me")
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -146,7 +146,7 @@ public class UserIntegrationTest {
     public void addUser() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.post("/api/user")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .content(new ObjectMapper().writeValueAsString(constructUser()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -166,7 +166,7 @@ public class UserIntegrationTest {
 
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.put("/api/user/{name}", "ervin")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .content(new ObjectMapper().writeValueAsString(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -183,7 +183,7 @@ public class UserIntegrationTest {
     public void giveAdmin() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.put("/api/user/{name}/giveAdmin", "ervin")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -200,7 +200,7 @@ public class UserIntegrationTest {
     public void takeAdmin() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.put("/api/user/{name}/takeAdmin", "ervin")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -217,7 +217,7 @@ public class UserIntegrationTest {
     public void setOrUpdateUser() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.put("/api/user/setOrUpdateInfo")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "ervin")
+                        .param("authVal", "ervin")
                         .content(new ObjectMapper().writeValueAsString(constructInfoRequest()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -234,7 +234,7 @@ public class UserIntegrationTest {
     public void deleteUser() throws Exception {
         MvcResult response = mockMvc.perform(MockMvcRequestBuilders.delete("/api/user/{name}", "leanne")
                         .with(SecurityMockMvcRequestPostProcessors.testSecurityContext())
-                        .param("username", "leanne")
+                        .param("authVal", "leanne")
                         .content("")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
