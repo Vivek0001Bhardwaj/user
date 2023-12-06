@@ -14,8 +14,12 @@ import javax.transaction.Transactional;
 
 @Service
 public class CustomUserDetailsServiceImpl implements UserDetailsService, CustomUserDetailsService {
+	private final UserRepository userRepository;
+
 	@Autowired
-	private UserRepository userRepository;
+	public CustomUserDetailsServiceImpl(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
 
 	@Override
 	@Transactional
@@ -29,7 +33,6 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService, CustomU
 	@Transactional
 	public UserDetails loadUserById(Long id) {
 		User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException(String.format("User not found with id: %s", id)));
-
 		return UserPrincipal.create(user);
 	}
 }

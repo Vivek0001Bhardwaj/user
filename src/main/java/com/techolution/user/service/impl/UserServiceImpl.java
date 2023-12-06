@@ -24,160 +24,170 @@ import java.util.List;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-	private final UserRepository userRepository;
-	private final RoleRepository roleRepository;
-	private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-	@Autowired
-	public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
-						   PasswordEncoder passwordEncoder) {
-		this.userRepository = userRepository;
-		this.roleRepository = roleRepository;
-		this.passwordEncoder = passwordEncoder;
-	}
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-	@Override
-	public UserSummary getCurrentUser(UserPrincipal currentUser) {
-		return new UserSummary(currentUser.getId(), currentUser.getUsername(), currentUser.getFirstName(),
-				currentUser.getLastName());
-	}
+    @Override
+    public UserSummary getCurrentUser(UserPrincipal currentUser) {
+        return new UserSummary(currentUser.getId(), currentUser.getUsername(), currentUser.getFirstName(),
+                currentUser.getLastName());
+    }
 
-	@Override
-	public UserIdentityAvailability checkUsernameAvailability(String username) {
-		Boolean isAvailable = !userRepository.existsByUsername(username);
-		return new UserIdentityAvailability(isAvailable);
-	}
+    @Override
+    public UserIdentityAvailability checkUsernameAvailability(String username) {
+        Boolean isAvailable = !userRepository.existsByUsername(username);
+        return new UserIdentityAvailability(isAvailable);
+    }
 
-	@Override
-	public UserIdentityAvailability checkEmailAvailability(String email) {
-		Boolean isAvailable = !userRepository.existsByEmail(email);
-		return new UserIdentityAvailability(isAvailable);
-	}
+    @Override
+    public UserIdentityAvailability checkEmailAvailability(String email) {
+        Boolean isAvailable = !userRepository.existsByEmail(email);
+        return new UserIdentityAvailability(isAvailable);
+    }
 
-	@Override
-	public UserProfile getUserProfile(String username) {
-		User user = userRepository.getUserByName(username);
+    @Override
+    public UserProfile getUserProfile(String username) {
+        User user = userRepository.getUserByName(username);
 
-		return new UserProfile(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(),
-				user.getCreatedAt(), user.getEmail(), user.getAddress(), user.getPhone());
-	}
+        return new UserProfile(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(),
+                user.getCreatedAt(), user.getEmail(), user.getAddress(), user.getPhone());
+    }
 
-	@Override
-	public User addUser(User user) {
-		if (userRepository.existsByUsername(user.getUsername())) {
-			ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "Username is already taken");
-			throw new BadRequestException(apiResponse);
-		}
+    @Override
+    public User addUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "Username is already taken");
+            throw new BadRequestException(apiResponse);
+        }
 
-		if (userRepository.existsByEmail(user.getEmail())) {
-			ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "Email is already taken");
-			throw new BadRequestException(apiResponse);
-		}
+        if (userRepository.existsByEmail(user.getEmail())) {
+            ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "Email is already taken");
+            throw new BadRequestException(apiResponse);
+        }
 
-		List<Role> roles = new ArrayList<>();
-		roles.add(
-				roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
+        List<Role> roles = new ArrayList<>();
+        roles.add(roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
 
-		user.setRoles(roles);
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(roles);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-		return userRepository.save(user);
-	}
+        return userRepository.save(user);
+    }
 
-	@Override
-	public User updateUser(User newUser, String username, UserPrincipal currentUser) {
-		User user = userRepository.getUserByName(username);
-		if (user.getId().equals(currentUser.getId())
-				|| currentUser.getAuthorities().contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
-			user.setFirstName(newUser.getFirstName());
-			user.setLastName(newUser.getLastName());
-			user.setAddress(newUser.getAddress());
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
-			user.setPhone(newUser.getPhone());
+    @Override
+    public User updateUser(User newUser, String username, UserPrincipal currentUser) {
+        User user = userRepository.getUserByName(username);
 
-			return userRepository.save(user);
-		}
+        if (user.getId().equals(currentUser.getId())
+                || currentUser.getAuthorities().contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
+            user.setFirstName(newUser.getFirstName());
+            user.setLastName(newUser.getLastName());
+            user.setAddress(newUser.getAddress());
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPhone(newUser.getPhone());
 
-		ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to update profile of: " + username);
-		throw new UnauthorizedException(apiResponse);
+            return userRepository.save(user);
+        }
 
-	}
+        ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to update profile of: " + username);
+        throw new UnauthorizedException(apiResponse);
 
-	@Override
-	public ApiResponse deleteUser(String username, UserPrincipal currentUser) {
-		User user = userRepository.findByUsername(username)
-				.orElseThrow(() -> new ResourceNotFoundException("User", "id", username));
-		if (!user.getId().equals(currentUser.getId()) || !currentUser.getAuthorities()
-				.contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
-			ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to delete profile of: " + username);
-			throw new AccessDeniedException(apiResponse);
-		}
+    }
 
-		userRepository.deleteById(user.getId());
+    @Override
+    public ApiResponse deleteUser(String username, UserPrincipal currentUser) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", username));
 
-		return new ApiResponse(Boolean.TRUE, "You successfully deleted profile of: " + username);
-	}
+        if (!user.getId().equals(currentUser.getId()) || !currentUser.getAuthorities()
+                .contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
+            ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to delete profile of: " + username);
+            throw new AccessDeniedException(apiResponse);
+        }
 
-	@Override
-	public ApiResponse giveAdmin(String username) {
-		User user = userRepository.getUserByName(username);
+        userRepository.deleteById(user.getId());
 
-		List<Role> roles = new ArrayList<>();
-		roles.add(roleRepository.findByName(RoleName.ROLE_ADMIN)
-				.orElseThrow(() -> new AppException("User role not set")));
-		roles.add(
-				roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
+        return new ApiResponse(Boolean.TRUE, "You successfully deleted profile of: " + username);
+    }
 
-		user.setRoles(roles);
-		userRepository.save(user);
+    @Override
+    public ApiResponse giveAdmin(String username) {
+        User user = userRepository.getUserByName(username);
 
-		return new ApiResponse(Boolean.TRUE, "You gave ADMIN role to user: " + username);
-	}
+        List<Role> roles = new ArrayList<>();
+        roles.add(roleRepository.findByName(RoleName.ROLE_ADMIN)
+                .orElseThrow(() -> new AppException("User role not set")));
+        roles.add(
+                roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
 
-	@Override
-	public ApiResponse removeAdmin(String username) {
-		User user = userRepository.getUserByName(username);
+        user.setRoles(roles);
+        userRepository.save(user);
 
-		List<Role> roles = new ArrayList<>();
-		roles.add(
-				roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
+        return new ApiResponse(Boolean.TRUE, "You gave ADMIN role to user: " + username);
+    }
 
-		user.setRoles(roles);
-		userRepository.save(user);
+    @Override
+    public ApiResponse removeAdmin(String username) {
+        User user = userRepository.getUserByName(username);
 
-		return new ApiResponse(Boolean.TRUE, "You took ADMIN role from user: " + username);
-	}
+        List<Role> roles = new ArrayList<>();
+        roles.add(
+                roleRepository.findByName(RoleName.ROLE_USER).orElseThrow(() -> new AppException("User role not set")));
 
-	@Override
-	public UserProfile setOrUpdateInfo(UserPrincipal currentUser, InfoRequest infoRequest) {
-		User user = userRepository.findByUsername(currentUser.getUsername())
-				.orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUser.getUsername()));
-		Geo geo = Geo.builder()
-				.lat(infoRequest.getLat())
-				.lng(infoRequest.getLng())
-				.build();
+        user.setRoles(roles);
+        userRepository.save(user);
 
-		Address address = Address.builder()
-				.street(infoRequest.getStreet())
-				.suite(infoRequest.getSuite())
-				.city(infoRequest.getCity())
-				.zipcode(infoRequest.getZipcode())
-				.geo(geo)
-				.build();
+        return new ApiResponse(Boolean.TRUE, "You took ADMIN role from user: " + username);
+    }
 
-		if (user.getId().equals(currentUser.getId())
-				|| currentUser.getAuthorities().contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
-			user.setPhone(infoRequest.getPhone());
-			user.setAddress(address);
+    @Override
+    public UserProfile setOrUpdateInfo(UserPrincipal currentUser, InfoRequest infoRequest) {
+        User user = userRepository.findByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUser.getUsername()));
 
-			User updatedUser = userRepository.save(user);
+        Geo geo = constructGeo(infoRequest);
 
-			return new UserProfile(updatedUser.getId(), updatedUser.getUsername(),
-					updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getCreatedAt(),
-					updatedUser.getEmail(), updatedUser.getAddress(), updatedUser.getPhone());
-		}
+        Address address = constructAddress(infoRequest, geo);
 
-		ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to update users profile", HttpStatus.FORBIDDEN);
-		throw new AccessDeniedException(apiResponse);
-	}
+        if (user.getId().equals(currentUser.getId())
+                || currentUser.getAuthorities().contains(new SimpleGrantedAuthority(RoleName.ROLE_ADMIN.toString()))) {
+            user.setPhone(infoRequest.getPhone());
+            user.setAddress(address);
+
+            User updatedUser = userRepository.save(user);
+
+            return new UserProfile(updatedUser.getId(), updatedUser.getUsername(),
+                    updatedUser.getFirstName(), updatedUser.getLastName(), updatedUser.getCreatedAt(),
+                    updatedUser.getEmail(), updatedUser.getAddress(), updatedUser.getPhone());
+        }
+
+        ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, "You don't have permission to update users profile", HttpStatus.FORBIDDEN);
+        throw new AccessDeniedException(apiResponse);
+    }
+
+    private Geo constructGeo(InfoRequest infoRequest) {
+        return Geo.builder()
+                .lat(infoRequest.getLat())
+                .lng(infoRequest.getLng())
+                .build();
+    }
+
+    private Address constructAddress(InfoRequest infoRequest, Geo geo) {
+        return Address.builder()
+                .street(infoRequest.getStreet())
+                .suite(infoRequest.getSuite())
+                .city(infoRequest.getCity())
+                .zipcode(infoRequest.getZipcode())
+                .geo(geo)
+                .build();
+    }
 }
